@@ -1,12 +1,6 @@
-import { EventEmitter } from 'events';
 
 interface ItemsCount {
     [stringifiedItem: string]: number
-}
-
-export interface IAprioriEvents<T> {
-    on(event: 'data', listener: (itemset: Itemset<T>) => void): this;
-    on(event: string, listener: Function): this;
 }
 
 export interface IAprioriResults<T> {
@@ -19,7 +13,7 @@ export interface Itemset<T> {
     support: number
 }
 
-export class Apriori<T> extends EventEmitter implements IAprioriEvents<T> {
+export class Apriori<T>{
     private _transactions: T[][];
 
     /**
@@ -30,9 +24,7 @@ export class Apriori<T> extends EventEmitter implements IAprioriEvents<T> {
      * sufficiently often in the database.
      *
      */
-    constructor( private _support: number /*, private _confidence: number*/ ) {
-        super();
-    }
+    constructor( private _support: number /*, private _confidence: number*/ ) {}
 
     /**
      * Executes the Apriori Algorithm.
@@ -87,7 +79,6 @@ export class Apriori<T> extends EventEmitter implements IAprioriEvents<T> {
                         items: [JSON.parse(stringifiedItem)]
                     };
                     ret.push(frequentItemset);
-                    this.emit('data', frequentItemset)
                 }
                 return ret;
             }, []);
@@ -112,11 +103,7 @@ export class Apriori<T> extends EventEmitter implements IAprioriEvents<T> {
         // Generating candidates and counting their occurence.
         return this._getCandidatesCount( this._generateKCandidates(items,k) )
             // Pruning candidates.
-            .filter( (itemset: Itemset<T>) => {
-                let isFrequent: boolean = itemset.support >= this._support;
-                if(isFrequent) this.emit('data', itemset);
-                return isFrequent;
-            });
+            .filter( (itemset: Itemset<T>) => itemset.support >= this._support);
     }
 
     /**
